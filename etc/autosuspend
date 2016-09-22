@@ -1,0 +1,24 @@
+# Turn on auto suspend
+AUTO_SUSPEND='yes'
+
+# Turning suspend by day (8 a.m. to 3 a.m.) off
+DONT_SUSPEND_BY_DAY='no'
+
+# Automatically reboot once a week when the system isn't in use
+REBOOT_ONCE_PER_WEEK='yes'
+
+# Daemons that always have one process running, only if more that one process is active we prevent the suspend
+# The values are used with grep, so just a unique portion is sufficient
+DAEMONS=''
+
+# Important applications that shall prevent the suspend
+# The values are used with grep, so just a unique portion is sufficient
+APPLICATIONS='"^nxagent$" "^rsnapshot$" "^wsus$" "^wget$" "^screen$" "^mlnetp$" "^apt-get$" "^aptitude$" "^dpkg$" "^cp$"'
+
+# Network IP range for checking any open samba connections
+# The value is used with grep, so just a unique portion is sufficient
+SAMBANETWORK='192.168.1.'
+
+# Names or IP for computers that shall prevent the suspend
+# We ping these computers in the list to check whether they are active.
+CLIENTS='COMPUTER1 COMPUTER2'
