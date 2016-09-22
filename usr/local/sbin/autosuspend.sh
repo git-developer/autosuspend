@@ -1,10 +1,11 @@
 #!/bin/bash
 
 . /etc/autosuspend
+. /usr/local/sbin/autosuspend.tvheadend-functions
 
 logit()
 {
-	logger -p local0.notice -s -- AutoSuspend: $*
+        logger -p local0.notice -i -t autosuspend -- $*
 	return 0
 }
 
@@ -44,6 +45,12 @@ IsDaemonActive()
 
 IsBusy()
 {
+        # Tvheadend
+        IsTvheadendBusy
+        if [ "$?" == "1" ]; then
+                return 1
+        fi
+
 	# Samba
 	if [ "x$SAMBANETWORK" != "x" ]; then
 		if [ `/usr/bin/smbstatus -b | grep $SAMBANETWORK | wc -l ` != "0" ]; then
@@ -95,11 +102,13 @@ if [ "$AUTO_SUSPEND" = "true" ] || [ "$AUTO_SUSPEND" = "yes" ] ; then
 			if [ \( "$DONT_SUSPEND_BY_DAY" != "true" -a "$DONT_SUSPEND_BY_DAY" != "yes" \) -o \( "`date +%H`" -ge "3" -a "`date +%H`" -lt "8" \) ]; then
 				# notice resume-plan
 				NEXTWAKE="0"
-				while read line; do
-					if [ "`date +%s -d \"$line\"`" -gt "`date +%s`" -a  \( "`date +%s -d \"$line\"`" -lt "$NEXTWAKE" -o "$NEXTWAKE" = "0" \) ]; then
-						NEXTWAKE="`date +%s -d \"$line\"`"
-					fi
-				done < /etc/autosuspend_resumeplan
+                                if [ -e /etc/autosuspend_resumeplan ]; then
+					while read line; do
+						if [ "`date +%s -d \"$line\"`" -gt "`date +%s`" -a  \( "`date +%s -d \"$line\"`" -lt "$NEXTWAKE" -o "$NEXTWAKE" = "0" \) ]; then
+							NEXTWAKE="`date +%s -d \"$line\"`"
+						fi
+					done < /etc/autosuspend_resumeplan
+				fi
 				if [ "$NEXTWAKE" -gt "`date +%s`" ]; then
 					if [ "$NEXTWAKE" -gt "`expr \"\`date +%s\`\" + 1800`" ]; then
 						echo "0" > /sys/class/rtc/rtc0/wakealarm
@@ -117,11 +126,21 @@ if [ "$AUTO_SUSPEND" = "true" ] || [ "$AUTO_SUSPEND" = "yes" ] ; then
 					shutdown -r now
 				else
 					logit "AUTO SUSPEND CAUSED"
-					( test ! -x "/usr/bin/pm-is-supported" && ( logit "cannot check the system's suspend ability. aborting" || /bin/true ) ) || \
-					( /usr/bin/pm-is-supported --suspend-hybrid && /usr/sbin/pm-suspend-hybrid ) || \
-					( /usr/bin/pm-is-supported --suspend && /usr/sbin/pm-suspend ) || \
-					( /usr/bin/pm-is-supported --hibernate && /usr/sbin/pm-hibernate ) || \
-					logit "NEITHER SUSPEND NOR RESUME ARE NOT SUPPORTED BY THIS SYSTEM!!! aborting"
+                                        suspend_method=${SUSPEND_METHOD:-hibernate}
+                                        logit "Suspend method: $SUSPEND_METHOD"
+                                        SetWakeupTime
+                                        case "$SUSPEND_METHOD" in
+                                            "suspend")      systemctl suspend
+                                            ;;
+                                            "hibernate")    systemctl hibernate
+                                            ;;
+                                            "hybrid-sleep") systemctl hybrid-sleep
+                                            ;;
+                                            "poweroff")     systemctl poweroff
+                                            ;;
+                                            *) logit "Aborting because of unsupported suspend method: $SUSPEND_METHOD"
+                                            ;;
+                                        esac
 				fi
 			else
 				logit "did not auto suspend because it is broad day"

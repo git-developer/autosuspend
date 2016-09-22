@@ -1,6 +1,9 @@
 # Turn on auto suspend
 AUTO_SUSPEND='yes'
 
+# Suspend method: one of 'suspend', 'hibernate', 'hybrid-sleep', 'poweroff'
+SUSPEND_METHOD='poweroff'
+
 # Turning suspend by day (8 a.m. to 3 a.m.) off
 DONT_SUSPEND_BY_DAY='no'
 
@@ -13,7 +16,7 @@ DAEMONS=''
 
 # Important applications that shall prevent the suspend
 # The values are used with grep, so just a unique portion is sufficient
-APPLICATIONS='"^nxagent$" "^rsnapshot$" "^wsus$" "^wget$" "^screen$" "^mlnetp$" "^apt-get$" "^aptitude$" "^dpkg$" "^cp$"'
+APPLICATIONS='^nxagent$ ^rsnapshot$ ^wsus$ ^wget$ ^screen$ ^mlnetp$ ^apt-get$ ^aptitude$ ^dpkg$ ^cp$'
 
 # Network IP range for checking any open samba connections
 # The value is used with grep, so just a unique portion is sufficient
@@ -21,4 +24,34 @@ SAMBANETWORK='192.168.1.'
 
 # Names or IP for computers that shall prevent the suspend
 # We ping these computers in the list to check whether they are active.
-CLIENTS='COMPUTER1 COMPUTER2'
+CLIENTS=''
+
+#
+# User for access to the Tvheadend REST API
+#TVHEADEND_USER=
+
+#
+# Password for access to the Tvheadend REST API
+#TVHEADEND_PASSWORD=
+
+#
+# IP for access to the Tvheadend REST API. Default: Autodetected from hostname
+#TVHEADEND_IP=
+
+#
+# TVheadend HTTP port. Default: 9981
+#TVHEADEND_HTTP_PORT=9981
+
+#
+# TVheadend HTSP port. Default: 9982
+#TVHEADEND_HTSP_PORT=9982
+
+#
+# Boot duration of the machine. Used to wake the machine timely before the next
+# recording. Default: 180 seconds
+#TVHEADEND_BOOT_DELAY_SECONDS=180
+
+#
+# Autosuspension will be aborted if a recording is upcoming within the given
+# duration (unit: minutes). Default: 15 minutes
+#TVHEADEND_IDLE_MINUTES_BEFORE_RECORDING=15

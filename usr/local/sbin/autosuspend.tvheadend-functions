@@ -1,0 +1,73 @@
+#!/bin/bash
+
+#
+# Helper functions to shutdown and wakeup the server using Tvheadend
+#
+# Should be sourced from /usr/local/sbin/autosuspend.sh
+#
+
+if [ -z "$(type -t logit)" ] ; then
+  logit() {
+    echo AutoSuspend: $*
+    return 0
+  }
+fi
+
+if [ -z "$TVHEADEND_USER" ] || [ -z "$TVHEADEND_PASSWORD" ] ; then
+    logit "Missing Tvheadend credentials (user and/or password)"
+    return 1
+fi
+TVHEADEND_IP=$(echo ${TVHEADEND_IP:-$(hostname -I)} | tr -d [:space:])
+
+IsTvheadendBusy()
+{
+        tvheadend_status=$(curl -s --user $TVHEADEND_USER:$TVHEADEND_PASSWORD http://$TVHEADEND_IP:${TVHEADEND_HTTP_PORT:-9981}/status.xml)
+
+        # Does also work for more than 1 'recording' element
+        recording_status=$(echo $tvheadend_status | xmlstarlet sel -t -v "currentload/recordings/recording/status='Recording'")
+        if [ "$recording_status" = "true" ] ; then
+            logit "Tvheadend is recording, auto suspend terminated"
+            return 1
+        fi
+
+        subscriptions=$(echo $tvheadend_status | xmlstarlet sel -t -v "currentload/subscriptions")
+        if [ "$subscriptions" -gt "0" ] ; then
+            logit "Tvheadend has $subscriptions subscriptions, auto suspend terminated"
+            return 1
+        fi
+
+        minutes=$(echo $tvheadend_status | xmlstarlet sel -t -v "currentload/recordings/recording/next")
+        if [[ "$minutes" && "$minutes" -le ${TVHEADEND_IDLE_MINUTES_BEFORE_RECORDING:-15} ]] ; then
+            logit "Next Tvheadend recording starts in $minutes minutes, auto suspend terminated"
+            return 1
+        fi
+
+        TVHEADEND_PORTS="${TVHEADEND_HTTP_PORT:-9981} ${TVHEADEND_HTSP_PORT:-9982}"
+        LANG=C
+        active_clients=()
+        for port in $TVHEADEND_PORTS; do
+            active_clients+=($(netstat -n | grep -oP "$TVHEADEND_IP:$port\s+\K([^\s]+)(?=:\d+\s+ESTABLISHED)"))
+        done
+
+        if [ $active_clients ]; then
+          logit "Tvheadend has active clients: $active_clients"
+          return 1
+        fi
+
+        return 0
+}
+
+SetWakeupTime() {
+    tvheadend_dvr_upcoming=$(curl -s --user $TVHEADEND_USER:$TVHEADEND_PASSWORD http://$TVHEADEND_IP:${TVHEADEND_HTTP_PORT:-9981}/api/dvr/entry/grid_upcoming)
+    now=$(date +%s)
+    start_times=($(echo $tvheadend_dvr_upcoming | jq -r ".entries[] | (.start_real) | select(. > $now)" | sort -n))
+    if [ ${#start_times[@]} -gt 0 ]; then
+      next=${start_times[0]}
+      logit "${#start_times[@]} upcoming recordings, next starts at " $(date --date @$next)
+      wake_date=$(($next - ${TVHEADEND_BOOT_DELAY_SECONDS:-180}))
+      echo 0 > /sys/class/rtc/rtc0/wakealarm
+      logit $(/usr/sbin/rtcwake -m no -t $wake_date)
+    else
+      logit "No upcoming recordings"
+    fi
+}
