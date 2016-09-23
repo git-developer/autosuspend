@@ -1,29 +1,47 @@
-# autosuspend
-Autosuspend script for [Tvheadend](https://tvheadend.org/) on Debian 8 (Jessie)
+# tvheadend-autosuspend
 
-Tested with Tvheadend 4.0.8~jessie
+An extension to [Tvheadend](https://tvheadend.org/) that will _suspend_ your system when it is _inactive_ and wake it right before the next scheduled recording.
+
+**Suspend** can be configured to be one of
+
+* `suspend`
+* `hibernate`
+* `hybrid-suspend` and
+* `poweroff`
+
+**Activity** means
+
+* Tvheadend activity:  
+ * Running or upcoming recordings
+ * Subscriptions, e.g. live TV or EPG grabbing
+ * Connected clients, e.g. Kodi or web interface
+* System activity as defined in the [Ubuntu AutoSuspend](https://wiki.ubuntuusers.de/Skripte/AutoSuspend/) script, e.g.
+ *  Running daemons
+ *  Running applications
+ *  Connected samba clients
+ *  Reachable network clients
+
+This script is based on ` systemd` and does not make use of  `pm-utils`. It has been tested on  Debian 8 (Jessie) with  Tvheadend build 4.0.8~jessie. It should work on systems that meets the dependencies listed below.
 
 ##Prerequisites
 * systemd (part of Debian 8)
 * A running Tvheadend service
 
-##Dependencies
-* `rtcwake` (package util-linux, part of Debian 8)
-* `netstat` (package net-tools, part of Debian 8)
-* `curl`
-* [`xmlstarlet`](http://xmlstar.sourceforge.net/)
-* [`jq`](https://stedolan.github.io/jq/)
+##Installation
+1.  Copy the files from this git repository to your system.
+1.  Install the dependencies
+  * `rtcwake` (package util-linux, part of Debian 8)
+ * `netstat` (package net-tools, part of Debian 8)
+ * `curl`
+ * [`xmlstarlet`](http://xmlstar.sourceforge.net/)
+ * [`jq`](https://stedolan.github.io/jq/)
 
-The dependencies may be installed using the following command
+On Debian based systems, dependencies may be installed using the command
 
-```
-$ sudo apt-get install util-linux net-tools curl xmlstarlet jq
-```
+    $ sudo apt-get install util-linux net-tools curl xmlstarlet jq
 
 ##Configuration
-This script is derived from [AutoSuspend](https://wiki.ubuntuusers.de/Skripte/AutoSuspend/), see the documentation for details.
-
-Edit `/etc/autosuspend` as desired. It is required to add credentials for tvheadend, e.g.
+Edit `/etc/autosuspend` according to your needs. Credentials for tvheadend are **required**, e.g.
 
     # User for access to the Tvheadend REST API
     TVHEADEND_USER=hts
@@ -31,11 +49,15 @@ Edit `/etc/autosuspend` as desired. It is required to add credentials for tvhead
     # Password for access to the Tvheadend REST API
     TVHEADEND_PASSWORD=hts
 
-It is possible to work with an existing user, but I recommend to create a dedicated one. The following rights are required:
+All other values are optional.
+
+It is possible to work with an existing Tvheadend user, but I recommend to create a separate account to keep things clear. The following rights are required:
 
 * Web Interface
 * Admin
 * Video Recorder
+
+Details on the configuration of system activity can be found in the [Ubuntu users wiki](https://wiki.ubuntuusers.de/Skripte/AutoSuspend/) (german).
 
 ##Links
 * [AutoSuspend](https://wiki.ubuntuusers.de/Skripte/AutoSuspend/)
