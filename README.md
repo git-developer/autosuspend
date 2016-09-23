@@ -21,7 +21,7 @@ An extension to [Tvheadend](https://tvheadend.org/) that will _suspend_ your sys
  *  Connected samba clients
  *  Reachable network clients
 
-This script is based on ` systemd` and does not make use of  `pm-utils`. It has been tested on  Debian 8 (Jessie) with  Tvheadend build 4.0.8~jessie. It should work on systems that meets the dependencies listed below.
+This script is based on `systemd` and does not make use of `pm-utils`. It has been tested on Debian 8 (Jessie) with Tvheadend build 4.0.8~jessie. It should work on systems that meet the dependencies listed below.
 
 ##Prerequisites
 * systemd (part of Debian 8)
