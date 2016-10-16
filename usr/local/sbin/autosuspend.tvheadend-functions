@@ -6,22 +6,33 @@
 # Should be sourced from /usr/local/sbin/autosuspend.sh
 #
 
+
+#
+# add logit function if not sourced from the original autosuspend.sh script
+# (e.g. for debugging purposes)
+#
 if [ -z "$(type -t logit)" ] ; then
   logit() {
-    echo AutoSuspend: $*
+    echo AutoSuspend: $* >&2
     return 0
   }
 fi
 
+
+#
+# Check credentials and apply default values
+#
 if [ -z "$TVHEADEND_USER" ] || [ -z "$TVHEADEND_PASSWORD" ] ; then
     logit "Missing Tvheadend credentials (user and/or password)"
     return 1
 fi
 TVHEADEND_IP=$(echo ${TVHEADEND_IP:-$(hostname -I)} | tr -d [:space:])
+TVHEADEND_HTTP_PORT=${TVHEADEND_HTTP_PORT:-9981}
+TVHEADEND_HTSP_PORT=${TVHEADEND_HTSP_PORT:-9982}
 
 IsTvheadendBusy()
 {
-        tvheadend_status=$(curl -s --user $TVHEADEND_USER:$TVHEADEND_PASSWORD http://$TVHEADEND_IP:${TVHEADEND_HTTP_PORT:-9981}/status.xml)
+        tvheadend_status=$(curl -s --user $TVHEADEND_USER:$TVHEADEND_PASSWORD http://$TVHEADEND_IP:$TVHEADEND_HTTP_PORT/status.xml)
 
         # Does also work for more than 1 'recording' element
         recording_status=$(echo $tvheadend_status | xmlstarlet sel -t -v "currentload/recordings/recording/status='Recording'")
@@ -37,12 +48,12 @@ IsTvheadendBusy()
         fi
 
         minutes=$(echo $tvheadend_status | xmlstarlet sel -t -v "currentload/recordings/recording/next")
-        if [[ "$minutes" && "$minutes" -le ${TVHEADEND_IDLE_MINUTES_BEFORE_RECORDING:-15} ]] ; then
+        if [ -n "$minutes" -a  "$minutes" -le "${TVHEADEND_IDLE_MINUTES_BEFORE_RECORDING:-15}" ] ; then
             logit "Next Tvheadend recording starts in $minutes minutes, auto suspend terminated"
             return 1
         fi
 
-        TVHEADEND_PORTS="${TVHEADEND_HTTP_PORT:-9981} ${TVHEADEND_HTSP_PORT:-9982}"
+        TVHEADEND_PORTS="$TVHEADEND_HTTP_PORT $TVHEADEND_HTSP_PORT"
         LANG=C
         active_clients=()
         for port in $TVHEADEND_PORTS; do
