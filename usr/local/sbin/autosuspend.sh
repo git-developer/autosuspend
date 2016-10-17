@@ -84,12 +84,12 @@ IsBusy()
 	return 0
 }
 
-COUNTFILE="/var/spool/suspend_counter"
-OFFFILE="/var/spool/suspend_off"
+COUNTFILE=/var/spool/suspend_counter
+OFFFILE=/var/spool/suspend_off
 
 # turns off the auto suspend
-if [ -e $OFFFILE ]; then
-	logit "auto suspend is turned off by existents of $OFFFILE"
+if [ -e "$OFFFILE" ]; then
+	logit "auto suspend is turned off by existence of $OFFFILE"
 	exit 0
 fi
 
@@ -97,7 +97,7 @@ if [ "$AUTO_SUSPEND" = "true" ] || [ "$AUTO_SUSPEND" = "yes" ] ; then
 	IsBusy
 	if [ "$?" == "0" ]; then
 		# was it not busy already last time? Then suspend.
-		if [ -e $COUNTFILE ]; then
+		if [ -e "$COUNTFILE" ]; then
 			# only auto-suspend at night
 			if [ \( "$DONT_SUSPEND_BY_DAY" != "true" -a "$DONT_SUSPEND_BY_DAY" != "yes" \) -o \( "`date +%H`" -ge "3" -a "`date +%H`" -lt "8" \) ]; then
 				# notice resume-plan
@@ -120,7 +120,7 @@ if [ "$AUTO_SUSPEND" = "true" ] || [ "$AUTO_SUSPEND" = "yes" ] ; then
 					fi
 				fi
 				# and suspend or reboot:
-				rm -f $COUNTFILE
+				rm -f "$COUNTFILE"
 				if [ \( "$REBOOT_ONCE_PER_WEEK" = "true" -o "$REBOOT_ONCE_PER_WEEK" = "yes" \) -a "`echo \"scale=2; ( \`cat /proc/uptime | cut -d' ' -f1-1\` / 3600 / 24 ) >= 7\" | bc`" -gt 0 ]; then
 					logit "REBOOTING THE MACHINE BECAUSE IT HAS BEEN RUNNING FOR MORE THAN A WEEK"
 					shutdown -r now
@@ -148,12 +148,12 @@ if [ "$AUTO_SUSPEND" = "true" ] || [ "$AUTO_SUSPEND" = "yes" ] ; then
 			exit 0
 		else
 			# shut down next time
-			touch $COUNTFILE
+			touch "$COUNTFILE"
 			logit "marked for suspend in next try"
 			exit 0
 		fi
 	else
-		rm -f $COUNTFILE
+		rm -f "$COUNTFILE"
 		logit "aborted"
 		exit 0
 	fi
