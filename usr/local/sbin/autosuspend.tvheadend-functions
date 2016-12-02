@@ -76,7 +76,7 @@ FindNextActivity() {
     activities=()
 
     # collect Tvheadend schedules
-    tvheadend_dvr_upcoming=$(curl -s --user $TVHEADEND_USER:$TVHEADEND_PASSWORD http://$TVHEADEND_IP:$TVHEADEND_HTTP_PORT/api/dvr/entry/grid_upcoming)
+    tvheadend_dvr_upcoming=$(curl -s --user "$TVHEADEND_USER:$TVHEADEND_PASSWORD" "http://$TVHEADEND_IP:$TVHEADEND_HTTP_PORT/api/dvr/entry/grid_upcoming?sort=start_real&dir=ASC&limit=5")
     IFS=$'\n' activities+=($(echo $tvheadend_dvr_upcoming | jq -r ".entries[] | (\"Tvheadend schedule:\" + (.start_real | tostring) + \":\" + .channelname + \" - \" + .disp_title + \" (\" + .subtitle[] + \")\")"))
     logit "Tvheadend schedule contains ${#activities[@]} upcoming recordings"
 
