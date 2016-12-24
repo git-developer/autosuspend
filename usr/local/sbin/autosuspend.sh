@@ -127,9 +127,9 @@ if [ "$AUTO_SUSPEND" = "true" ] || [ "$AUTO_SUSPEND" = "yes" ] ; then
 				else
 					logit "AUTO SUSPEND CAUSED"
                                         suspend_method=${SUSPEND_METHOD:-hibernate}
-                                        logit "Suspend method: $SUSPEND_METHOD"
+                                        logit "Suspend method: $suspend_method"
                                         SetWakeupTime
-                                        case "$SUSPEND_METHOD" in
+                                        case "$suspend_method" in
                                             "suspend")      systemctl suspend
                                             ;;
                                             "hibernate")    systemctl hibernate
@@ -138,7 +138,7 @@ if [ "$AUTO_SUSPEND" = "true" ] || [ "$AUTO_SUSPEND" = "yes" ] ; then
                                             ;;
                                             "poweroff")     systemctl poweroff
                                             ;;
-                                            *) logit "Aborting because of unsupported suspend method: $SUSPEND_METHOD"
+                                            *) logit "Aborting because of unsupported suspend method: $suspend_method"
                                             ;;
                                         esac
 				fi
