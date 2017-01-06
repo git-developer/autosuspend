@@ -54,6 +54,14 @@ IsTvheadendBusy()
             return 1
         fi
 
+        next_activity=$(FindNextActivity)
+        now=$(date +%s)
+        let delta=(next_activity - now)/60
+        if [ "$delta" -le "${TVHEADEND_IDLE_MINUTES_BEFORE_RECORDING:-15}" ] ; then
+            logit "Next activity starts in $delta minutes, auto suspend terminated"
+            return 1
+        fi
+
         TVHEADEND_PORTS="$TVHEADEND_HTTP_PORT $TVHEADEND_HTSP_PORT"
         LANG=C
         active_clients=()
