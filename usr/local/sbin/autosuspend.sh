@@ -45,12 +45,6 @@ IsDaemonActive()
 
 IsBusy()
 {
-        # Tvheadend
-        IsTvheadendBusy
-        if [ "$?" == "1" ]; then
-                return 1
-        fi
-
 	# Samba
 	if [ "x$SAMBANETWORK" != "x" ]; then
 		if [ `/usr/bin/smbstatus -b | grep $SAMBANETWORK | wc -l ` != "0" ]; then
@@ -81,7 +75,13 @@ IsBusy()
 		return 1
 	fi
 
-	return 0
+        # Tvheadend
+        IsTvheadendBusy
+        if [ "$?" == "1" ]; then
+                return 1
+        fi
+
+        return 0
 }
 
 COUNTFILE=/var/spool/suspend_counter
@@ -121,7 +121,7 @@ if [ "$AUTO_SUSPEND" = "true" ] || [ "$AUTO_SUSPEND" = "yes" ] ; then
 				fi
 				# and suspend or reboot:
 				rm -f "$COUNTFILE"
-				if [ \( "$REBOOT_ONCE_PER_WEEK" = "true" -o "$REBOOT_ONCE_PER_WEEK" = "yes" \) -a "`echo \"scale=2; ( \`cat /proc/uptime | cut -d' ' -f1-1\` / 3600 / 24 ) >= 7\" | bc`" -gt 0 ]; then
+				if [ "$REBOOT_ONCE_PER_WEEK" = "true" -o "$REBOOT_ONCE_PER_WEEK" = "yes" ] && [ "`echo \"scale=2; ( \`cat /proc/uptime | cut -d' ' -f1-1\` / 3600 / 24 ) >= 7\" | bc`" -gt 0 ]; then
 					logit "REBOOTING THE MACHINE BECAUSE IT HAS BEEN RUNNING FOR MORE THAN A WEEK"
 					shutdown -r now
 				else
