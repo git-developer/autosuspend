@@ -49,16 +49,8 @@ IsTvheadendBusy()
         fi
 
         minutes=$(echo $tvheadend_status | xmlstarlet sel -t -v "currentload/recordings/recording/next")
-        if [ -n "$minutes" -a  "$minutes" -le "${TVHEADEND_IDLE_MINUTES_BEFORE_RECORDING:-15}" ] ; then
+        if [ -n "$minutes" ] && [ "$minutes" -le "${TVHEADEND_IDLE_MINUTES_BEFORE_RECORDING:-15}" ] ; then
             logit "Next Tvheadend recording starts in $minutes minutes, auto suspend terminated"
-            return 1
-        fi
-
-        next_activity=$(FindNextActivity)
-        now=$(date +%s)
-        let delta=(next_activity - now)/60
-        if [ "$delta" -le "${TVHEADEND_IDLE_MINUTES_BEFORE_RECORDING:-15}" ] ; then
-            logit "Next activity starts in $delta minutes, auto suspend terminated"
             return 1
         fi
 
@@ -71,6 +63,16 @@ IsTvheadendBusy()
         if [ $active_clients ]; then
           logit "Tvheadend has active clients: $active_clients"
           return 1
+        fi
+
+        next_activity=$(FindNextActivity)
+        if [ -n "$next_activity" ] ; then
+            now=$(date +%s)
+            let delta=(next_activity - now)/60
+            if [ "$delta" -le "${TVHEADEND_IDLE_MINUTES_BEFORE_RECORDING:-15}" ] ; then
+                logit "Next activity starts in $delta minutes, auto suspend terminated"
+                return 1
+            fi
         fi
 
         return 0
