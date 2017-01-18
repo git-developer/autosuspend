@@ -92,7 +92,7 @@ FindNextActivity() {
     # loop over scripts in '$TVHEADEND_ACTIVITIES_PATH' and add user activities
     for script in "$TVHEADEND_ACTIVITIES_PATH"/*
     do
-        if [ -f "$script" -a -x "$script" ]
+        if [ -f "$script" ] && [ -x "$script" ]
         then
             IFS=$'\n'
             for line in $("$script")
