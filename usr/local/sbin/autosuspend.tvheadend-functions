@@ -86,7 +86,7 @@ FindNextActivity() {
 
     # collect Tvheadend schedules
     tvheadend_dvr_upcoming=$(curl -s --user "$TVHEADEND_USER:$TVHEADEND_PASSWORD" "http://$TVHEADEND_IP:$TVHEADEND_HTTP_PORT/api/dvr/entry/grid_upcoming?sort=start_real&dir=ASC&limit=5")
-    IFS=$'\n' activities+=($(echo $tvheadend_dvr_upcoming | jq -r ".entries[] | (\"Tvheadend schedule:\" + (.start_real | tostring) + \":\" + .channelname + \" - \" + .disp_title + \" (\" + .disp_subtitle + \")\")"))
+    IFS=$'\n' activities+=($(echo $tvheadend_dvr_upcoming | jq -r ".entries[] | \"Tvheadend schedule:\" + (.start_real | tostring) + \":\" + .channelname + \" - \" + .disp_title + if (.disp_subtitle | length > 0) then \" (\" + .disp_subtitle + \")\" else \"\" end"))
     logit "Fetched next ${#activities[@]} upcoming recordings from Tvheadend"
 
     # loop over scripts in '$TVHEADEND_ACTIVITIES_PATH' and add user activities
