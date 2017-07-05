@@ -23,11 +23,11 @@ An extension to [Tvheadend](https://tvheadend.org/) that will _suspend_ your sys
 
 This script is based on `systemd` and does not make use of `pm-utils`. It has been tested on Debian 8 (Jessie) with Tvheadend build 4.0.8~jessie. It should work on systems that meet the dependencies listed below.
 
-##Prerequisites
+## Prerequisites
 * systemd (part of Debian 8)
 * A running Tvheadend service
 
-##Installation
+## Installation
 1.  Copy the files from this git repository to your system.
 1.  Install the dependencies
   * `rtcwake` (package util-linux, part of Debian 8)
@@ -40,7 +40,7 @@ On Debian based systems, dependencies may be installed using the command
 
     $ sudo apt-get install util-linux net-tools curl xmlstarlet jq
 
-##Configuration
+## Configuration
 Edit `/etc/autosuspend` according to your needs. Credentials for tvheadend are **required**, e.g.
 
     # User for access to the Tvheadend REST API
@@ -59,7 +59,7 @@ It is possible to work with an existing Tvheadend user, but I recommend to creat
 
 Details on the configuration of system activity can be found in the [Ubuntu users wiki](https://wiki.ubuntuusers.de/Skripte/AutoSuspend/) (german).
 
-##Links
+## Links
 * [AutoSuspend](https://wiki.ubuntuusers.de/Skripte/AutoSuspend/)
 * [Standby und Wakeup für Tvheadend - Bash-Skript für Ubuntu 14.04](http://motobiff.blogspot.de/2015/08/standby-und-wakeup-fur-tvheadend-bash.html)
 * [Power-saving techniques - sleep](https://tvheadend.org/boards/5/topics/12775)
