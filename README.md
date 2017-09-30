@@ -12,14 +12,14 @@ An extension to [Tvheadend](https://tvheadend.org/) that will _suspend_ your sys
 **Activity** means
 
 * Tvheadend activity:  
- * Running or upcoming recordings
- * Subscriptions, e.g. live TV or EPG grabbing
- * Connected clients, e.g. Kodi or web interface
+  * Running or upcoming recordings
+  * Subscriptions, e.g. live TV or EPG grabbing
+  * Connected clients, e.g. Kodi or web interface
 * System activity as defined in the [Ubuntu AutoSuspend](https://wiki.ubuntuusers.de/Skripte/AutoSuspend/) script, e.g.
- *  Running daemons
- *  Running applications
- *  Connected samba clients
- *  Reachable network clients
+  *  Running daemons
+  *  Running applications
+  *  Connected samba clients
+  *  Reachable network clients
 
 This script is based on `systemd` and does not make use of `pm-utils`. It has been tested on Debian 8 (Jessie) with Tvheadend build 4.0.8~jessie. It should work on systems that meet the dependencies listed below.
 
