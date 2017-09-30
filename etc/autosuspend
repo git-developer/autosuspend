@@ -55,3 +55,9 @@ CLIENTS=''
 # Autosuspension will be aborted if a recording is upcoming within the given
 # duration (unit: minutes). Default: 15 minutes
 #TVHEADEND_IDLE_MINUTES_BEFORE_RECORDING=15
+
+#
+# Consider over-the-air EPG grabbing as an activity that prevents suspend?
+# If set to anything other than 'yes', and if the only activity is
+# over-the-air EPG grabbing, the machine will be suspended. Default: 'yes'
+#TVHEADEND_CONSIDER_EPGGRABBING=yes

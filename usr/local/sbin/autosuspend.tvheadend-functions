@@ -42,10 +42,21 @@ IsTvheadendBusy()
             return 1
         fi
 
-        subscriptions=$(echo $tvheadend_status | xmlstarlet sel -t -v "currentload/subscriptions")
-        if [ "$subscriptions" -gt "0" ] ; then
-            logit "Tvheadend has $subscriptions subscriptions, auto suspend terminated"
-            return 1
+        subscription_count=$(echo $tvheadend_status | xmlstarlet sel -t -v "currentload/subscriptions")
+        if [ "$subscription_count" -gt 0 ] ; then
+            if [ "${TVHEADEND_CONSIDER_EPGGRABBING:-yes}" = 'yes' ] ; then
+                logit "Tvheadend has $subscription_count subscriptions, auto suspend terminated"
+                return 1
+            else
+                subscriptions=$(curl -s --user $TVHEADEND_USER:$TVHEADEND_PASSWORD http://$TVHEADEND_IP:$TVHEADEND_HTTP_PORT/api/status/subscriptions)
+                IFS=$'\n' subscription_titles+=($(echo $subscriptions | jq -r ".entries[] | .title" ))
+                for subscription_title in "${subscription_titles[@]}"; do
+                    if [ "$subscription_title" != "epggrab" ] ; then
+                        logit "Tvheadend has subscription '$subscription_title', auto suspend terminated"
+                        return 1
+                    fi
+                done
+            fi
         fi
 
         minutes=$(echo $tvheadend_status | xmlstarlet sel -t -v "currentload/recordings/recording/next")
