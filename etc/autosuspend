@@ -26,6 +26,12 @@ SAMBANETWORK='192.168.1.'
 # We ping these computers in the list to check whether they are active.
 CLIENTS=''
 
+
+#
+# Activation of Tvheadend support. If set to 'yes', Tvheadend status will be
+# used to determine if the machine is active. Default: yes
+#TVHEADEND_ENABLED='yes'
+
 #
 # User for access to the Tvheadend REST API
 #TVHEADEND_USER=
