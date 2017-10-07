@@ -64,6 +64,7 @@ IsTvheadendBusy()
                         return 1
                     fi
                 done
+                unset IFS
             fi
         fi
 
@@ -77,10 +78,10 @@ IsTvheadendBusy()
         LANG=C
         active_clients=()
         for port in $TVHEADEND_PORTS; do
-            active_clients+=($(netstat -n | grep -oP "$TVHEADEND_IP:$port\s+\K([^\s]+)(?=:\d+\s+ESTABLISHED)"))
+            IFS=$'\n' active_clients+=($(netstat -n | grep -oP "$TVHEADEND_IP:$port\s+\K([^\s]+)(?=:\d+\s+ESTABLISHED)"))
         done
         if [ $active_clients ]; then
-          logit "Tvheadend has active clients: $active_clients"
+          logit "Tvheadend has active clients: ${active_clients[@]}"
           return 1
         fi
     fi
