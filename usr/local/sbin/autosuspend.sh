@@ -47,8 +47,8 @@ IsBusy()
 {
         # Samba
         if [ "x$SAMBANETWORK" != "x" ]; then
-                samba_status=$(/usr/bin/smbstatus -b)
-                if [ $(echo $samba_status | grep $SAMBANETWORK | wc -l) != "0" ]; then
+                samba_status=$(/usr/bin/smbstatus -b | grep "$SAMBANETWORK")
+                if [ "$samba_status" ]; then
                     logit "Connected samba clients: $samba_status"
                     logit "samba connected, auto suspend terminated"
                     return 1
