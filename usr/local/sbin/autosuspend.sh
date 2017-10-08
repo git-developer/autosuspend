@@ -45,13 +45,15 @@ IsDaemonActive()
 
 IsBusy()
 {
-	# Samba
-	if [ "x$SAMBANETWORK" != "x" ]; then
-		if [ `/usr/bin/smbstatus -b | grep $SAMBANETWORK | wc -l ` != "0" ]; then
-		  logit "samba connected, auto suspend terminated"
-		  return 1
-		fi
-	fi
+        # Samba
+        if [ "x$SAMBANETWORK" != "x" ]; then
+                samba_status=$(/usr/bin/smbstatus -b)
+                if [ $(echo $samba_status | grep $SAMBANETWORK | wc -l) != "0" ]; then
+                    logit "Connected samba clients: $samba_status"
+                    logit "samba connected, auto suspend terminated"
+                    return 1
+                fi
+        fi
 
 	#daemons that always have one process running
 	IsDaemonActive $DAEMONS
