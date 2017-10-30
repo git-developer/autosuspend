@@ -131,6 +131,11 @@ if [ "$AUTO_SUSPEND" = "true" ] || [ "$AUTO_SUSPEND" = "yes" ] ; then
                                         suspend_method=${SUSPEND_METHOD:-hibernate}
                                         logit "Suspend method: $suspend_method"
                                         SetWakeupTime
+                                        wakeup_time=$(cat /sys/class/rtc/rtc0/wakealarm)
+                                        if [[ "$wakeup_time" -le $(date +%s) ]]; then
+                                            logit "Aborting suspend because wakeup time" $(date --date @$wakeup_time) "is in the past"
+                                            exit 2
+                                        fi
                                         case "$suspend_method" in
                                             "suspend")      systemctl suspend
                                             ;;
