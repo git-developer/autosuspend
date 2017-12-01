@@ -123,7 +123,7 @@ if [ "$AUTO_SUSPEND" = "true" ] || [ "$AUTO_SUSPEND" = "yes" ] ; then
 				fi
 				# and suspend or reboot:
 				rm -f "$COUNTFILE"
-				if [ "$REBOOT_ONCE_PER_WEEK" = "true" -o "$REBOOT_ONCE_PER_WEEK" = "yes" ] && [ "`echo \"scale=2; ( \`cat /proc/uptime | cut -d' ' -f1-1\` / 3600 / 24 ) >= 7\" | bc`" -gt 0 ]; then
+				if [ "$REBOOT_ONCE_PER_WEEK" = "true" -o "$REBOOT_ONCE_PER_WEEK" = "yes" ] && [ $(( $(LANG=C printf '%1.0f\n' $(cat /proc/uptime | cut -d ' ' -f 1)) / 3600 / 24 )) -ge 7 ]; then
 					logit "REBOOTING THE MACHINE BECAUSE IT HAS BEEN RUNNING FOR MORE THAN A WEEK"
 					shutdown -r now
 				else
