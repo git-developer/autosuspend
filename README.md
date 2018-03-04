@@ -20,6 +20,9 @@ An extension to [Tvheadend](https://tvheadend.org/) that will _suspend_ your sys
   *  Running applications
   *  Connected samba clients
   *  Reachable network clients
+* Additional system activity is monitored
+  *  Kodi activity (library update, active players)
+  *  Connections to streaming services on the machine can be detected
 
 This script is based on `systemd` and does not make use of `pm-utils`. It has been tested on Debian 8 (Jessie) with Tvheadend build 4.0.8~jessie. It should work on systems that meet the dependencies listed below.
 
@@ -30,7 +33,7 @@ This script is based on `systemd` and does not make use of `pm-utils`. It has be
 ## Installation
 1.  Copy the files from this git repository to your system.
 1.  Install the dependencies
-  * `rtcwake` (package util-linux, part of Debian 8)
+  * `rtcwake` (package util-linux, part of Debian 8) OR [`wittyPi`](http://www.uugear.com/product/wittypi2/)
  * `netstat` (package net-tools, part of Debian 8)
  * `curl`
  * [`xmlstarlet`](http://xmlstar.sourceforge.net/)
@@ -40,6 +43,8 @@ This script is based on `systemd` and does not make use of `pm-utils`. It has be
 On Debian based systems, dependencies may be installed using the command
 
     $ sudo apt-get install util-linux net-tools curl xmlstarlet jq bc
+
+On raspberry pi platforms, the wittyPi module can be used to schedule the in-time-boot processes
 
 ## Configuration
 Edit `/etc/autosuspend` according to your needs. Credentials for tvheadend are **required**, e.g.
