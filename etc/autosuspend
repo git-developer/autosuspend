@@ -20,7 +20,7 @@ APPLICATIONS='^nxagent$ ^rsnapshot$ ^wsus$ ^wget$ ^screen$ ^mlnetp$ ^apt-get$ ^a
 
 # Network IP range for checking any open samba connections
 # The value is used with grep, so just a unique portion is sufficient
-SAMBANETWORK='192.168.1.'
+SAMBANETWORK='192.168.0.'
 
 # Names or IP for computers that shall prevent the suspend
 # We ping these computers in the list to check whether they are active.
@@ -42,7 +42,11 @@ CLIENTS=''
 
 #
 # IP for access to the Tvheadend REST API. Default: Autodetected from hostname
-#TVHEADEND_IP=
+#TVHEADEND_IP=192.168.0.100
+
+# TVheadend webroot
+# should be empty in most cases (for webroot '/')
+#TVHEADEND_WEBROOT='/tv'
 
 #
 # TVheadend HTTP port. Default: 9981
@@ -67,3 +71,33 @@ CLIENTS=''
 # If set to anything other than 'yes', and if the only activity is
 # over-the-air EPG grabbing, the machine will be suspended. Default: 'yes'
 #TVHEADEND_CONSIDER_EPGGRABBING=yes
+
+#
+# enable kodi mediacenter support. Default: no
+#KODI_ENABLED='yes'
+
+#
+# kodi ip (in most cases identical to TVheadend's IP)
+#KODI_IP="$TVHEADEND_IP"
+
+#
+# kodi HTTP port
+#KODI_HTTP_PORT=8080
+
+#
+# enable streaming server support to detect streaming activity
+#STREAM_ENABLED='yes'
+
+#
+# port of the http stream. Autosuspend will be canceled if an active 
+# streaming connection is detected
+#STREAM_PORT=8000
+
+#
+# use wittyPi for the boot scheduling. Default: no
+# http://www.uugear.com/product/wittypi2/
+#WITTYPI_ENABLED='yes'
+
+#
+# directory where the software is installed (especially utilities.sh)
+WITTYPI_BASEDIR='/opt/wittyPi'

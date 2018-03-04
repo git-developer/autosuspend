@@ -31,6 +31,7 @@ if [ "${TVHEADEND_ENABLED:-yes}" == 'yes' ] ; then
     TVHEADEND_IP=$(echo ${TVHEADEND_IP:-$(hostname -I)} | tr -d [:space:])
     TVHEADEND_HTTP_PORT=${TVHEADEND_HTTP_PORT:-9981}
     TVHEADEND_HTSP_PORT=${TVHEADEND_HTSP_PORT:-9982}
+    TVHEADEND_WEBPATH="http://$TVHEADEND_IP:$TVHEADEND_HTTP_PORT/${TVHEADEND_WEBROOT}"
 else
     logit "Tvheadend support is disabled by configuration"
 fi
@@ -41,7 +42,7 @@ IsTvheadendBusy()
 {
     if [ "${TVHEADEND_ENABLED:-yes}" == 'yes' ] ; then
 
-        tvheadend_status=$(curl -s --user $TVHEADEND_USER:$TVHEADEND_PASSWORD http://$TVHEADEND_IP:$TVHEADEND_HTTP_PORT/status.xml)
+        tvheadend_status=$(curl -s --user $TVHEADEND_USER:$TVHEADEND_PASSWORD $TVHEADEND_WEBPATH/status.xml)
 
         # Does also work for more than 1 'recording' element
         recording_status=$(echo $tvheadend_status | xmlstarlet sel -t -v "currentload/recordings/recording/status='Recording'")
@@ -56,7 +57,7 @@ IsTvheadendBusy()
                 logit "Tvheadend has $subscription_count subscriptions, auto suspend terminated"
                 return 1
             else
-                subscriptions=$(curl -s --user $TVHEADEND_USER:$TVHEADEND_PASSWORD http://$TVHEADEND_IP:$TVHEADEND_HTTP_PORT/api/status/subscriptions)
+                subscriptions=$(curl -s --user $TVHEADEND_USER:$TVHEADEND_PASSWORD $TVHEADEND_WEBPATH/api/status/subscriptions)
                 IFS=$'\n' subscription_titles+=($(echo $subscriptions | jq -r ".entries[] | .title" ))
                 for subscription_title in "${subscription_titles[@]}"; do
                     if [ "$subscription_title" != "epggrab" ] ; then
@@ -79,9 +80,10 @@ IsTvheadendBusy()
         active_clients=()
         for port in $TVHEADEND_PORTS; do
             IFS=$'\n' active_clients+=($(netstat -n | grep -oP "$TVHEADEND_IP:$port\s+\K([^\s]+)(?=:\d+\s+ESTABLISHED)"))
+            unset IFS
         done
-        if [ $active_clients ]; then
-          logit "Tvheadend has active clients: ${active_clients[@]}"
+        if [ "$active_clients" ]; then
+          logit "Tvheadend has active remote clients: ${active_clients[@]}"
           return 1
         fi
     fi
@@ -107,8 +109,9 @@ FindNextActivity() {
 
     if [ "${TVHEADEND_ENABLED:-yes}" == 'yes' ] ; then
         # collect Tvheadend schedules
-        tvheadend_dvr_upcoming=$(curl -s --user "$TVHEADEND_USER:$TVHEADEND_PASSWORD" "http://$TVHEADEND_IP:$TVHEADEND_HTTP_PORT/api/dvr/entry/grid_upcoming?sort=start_real&dir=ASC&limit=5")
+        tvheadend_dvr_upcoming=$(curl -s --user "$TVHEADEND_USER:$TVHEADEND_PASSWORD" "$TVHEADEND_WEBPATH/api/dvr/entry/grid_upcoming?sort=start_real&dir=ASC&limit=5")
         IFS=$'\n' activities+=($(echo $tvheadend_dvr_upcoming | jq -r ".entries[] | \"Tvheadend schedule:\" + (.start_real | tostring) + \":\" + .channelname + \" - \" + .disp_title + if (.disp_subtitle | length > 0) then \" (\" + .disp_subtitle + \")\" else \"\" end"))
+        unset IFS
         logit "Fetched next ${#activities[@]} upcoming recordings from Tvheadend"
     fi
 
@@ -122,12 +125,14 @@ FindNextActivity() {
             do
                 activities+=("$script:$line")
             done
+            unset IFS
         fi
     done
 
     # return the earliest future timestamp
     if [ "${#activities[@]}" -gt 0 ]; then
         IFS=$'\n' activities=($(sort -t: -k2 <<<"${activities[*]}"))
+        unset IFS
 
         # call hooks
         if [ "$1" = "--call-pre-suspend-hooks" ]; then
@@ -138,6 +143,7 @@ FindNextActivity() {
         for timestamp_def in "${activities[@]}"
         do
             IFS=':' read -r source timestamp comment <<< "$timestamp_def"
+            unset IFS
             message=""
             if [ -n "$comment" ]
             then
@@ -158,11 +164,19 @@ FindNextActivity() {
 }
 
 SetWakeupTime() {
-    next=$(FindNextActivity "--call-pre-suspend-hooks")
+    next=$(FindNextActivity '--call-pre-suspend-hooks')
     if [ -n "$next" ]; then
         wake_date=$(($next - ${TVHEADEND_BOOT_DELAY_SECONDS:-180}))
-        echo 0 > /sys/class/rtc/rtc0/wakealarm
-        logit $(/usr/sbin/rtcwake -m no -t $wake_date)
+        # use wittyPi boot capabilities if available
+        if [ ${WITTYPI_ENABLED:-no} = 'yes' -a -f "$WITTYPI_BASEDIR/utilities.sh" ] ; then
+            . $WITTYPI_BASEDIR/utilities.sh
+            wittyPi_dhms=`date -d "@$wake_date" "+%d %H %M %S"`
+            # use wittyPi to set startup time
+            set_startup_time $wittyPi_dhms
+        else
+            echo 0 > /sys/class/rtc/rtc0/wakealarm
+            logit $(/usr/sbin/rtcwake -m no -t $wake_date)
+        fi
         CallPreSuspendHooks "wakeup_time" "$wake_date"
     else
         logit "No wake up time scheduled. Activity scripts may be added to '$TVHEADEND_ACTIVITIES_PATH'"

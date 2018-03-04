@@ -1,7 +1,10 @@
 #!/bin/bash
+# code from https://github.com/git-developer/autosuspend
 
 . /etc/autosuspend
 . /usr/local/sbin/autosuspend.tvheadend-functions
+. /usr/local/sbin/autosuspend.mediacenter-functions
+
 
 logit()
 {
@@ -70,7 +73,7 @@ IsBusy()
 	# Read logged users
 	USERCOUNT=`who | wc -l`;
 	# No Suspend if there are any users logged in
-	test $USERCOUNT -gt 0 && { logit "some users still connected, auto suspend terminated"; return 1; }
+	#test $USERCOUNT -gt 0 && { logit "some users still connected, auto suspend terminated"; return 1; }
 
 	IsOnline $CLIENTS
 	if [ "$?" == "1" ]; then
@@ -79,6 +82,18 @@ IsBusy()
 
         # Tvheadend
         IsTvheadendBusy
+        if [ "$?" == "1" ]; then
+                return 1
+        fi
+
+        # Kodi
+        IsKodiBusy
+        if [ "$?" == "1" ]; then
+                return 1
+        fi
+
+        # Streaming
+        IsStreamActive
         if [ "$?" == "1" ]; then
                 return 1
         fi
@@ -138,7 +153,7 @@ if [ "$AUTO_SUSPEND" = "true" ] || [ "$AUTO_SUSPEND" = "yes" ] ; then
                                             ;;
                                             "hybrid-sleep") systemctl hybrid-sleep
                                             ;;
-                                            "poweroff")     systemctl poweroff
+                                            "poweroff")     echo systemctl poweroff
                                             ;;
                                             *) logit "Aborting because of unsupported suspend method: $suspend_method"
                                             ;;
