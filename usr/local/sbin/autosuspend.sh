@@ -1,9 +1,9 @@
 #!/bin/bash
 # code from https://github.com/git-developer/autosuspend
+# TODO: license?
 
-. /etc/autosuspend
-. /usr/local/sbin/autosuspend.tvheadend-functions
-. /usr/local/sbin/autosuspend.mediacenter-functions
+# source configuration file
+[ -r /etc/autosuspend.conf ] && . /etc/autosuspend.conf
 
 
 logit()
@@ -80,24 +80,15 @@ IsBusy()
 		return 1
 	fi
 
-        # Tvheadend
-        IsTvheadendBusy
-        if [ "$?" == "1" ]; then
+        # include "IsBusy"-type functions from /etc/autosuspend.d/functions/
+        for script in /etc/autosuspend.d/functions/*; do
+            . $script
+            if [ "$?" == "1" ]; then
                 return 1
-        fi
+            fi
+        done
 
-        # Kodi
-        IsKodiBusy
-        if [ "$?" == "1" ]; then
-                return 1
-        fi
-
-        # Streaming
-        IsStreamActive
-        if [ "$?" == "1" ]; then
-                return 1
-        fi
-
+        # return 0 if IsBusy has no objections against autosuspend
         return 0
 }
 

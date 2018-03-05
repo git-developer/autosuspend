@@ -1,0 +1,110 @@
+#!/bin/bash
+
+#
+# Helper functions to check kodi status
+#
+# Should be sourced from /usr/local/sbin/autosuspend.sh
+#
+
+# list of functions within this script file to check machine activity
+# prevent autosuspend on return 1
+# no objections if 0 is returned
+list_of_functions="IsKodiBusy IsStreamActive IsMpdBusy"
+
+
+#
+# add logit function if not sourced from the original autosuspend.sh script
+# (e.g. for debugging purposes)
+
+if [ -z "$(type -t logit)" ] ; then
+    logit() {
+      echo AutoSuspend: $* >&2
+      return 0
+    }
+fi
+
+IsKodiBusy()
+{
+    if [ "${MEDIACENTER_ENABLED:-no}" = 'yes' ] ; then
+
+        kodi_player_status=$(curl -s -H 'Content-Type: application/json' -d '{"jsonrpc": "2.0", "method": "Player.GetActivePlayers", "id": 1}' $KODI_WEBPATH)
+        if [[ $kodi_player_status = *"playerid"* ]]; then
+            logit "Kodi is actively playing, auto suspend terminated"
+            return 1
+        fi
+        kodi_library_update_status=$(curl -s -H "Content-Type: application/json" -X POST -d '{"jsonrpc":"2.0","method":"XBMC.GetInfoBooleans","params": { "booleans": ["library.isscanning"]} ,"id":1}' $KODI_WEBPATH)
+        if [[ $kodi_library_update_status = *"true"* ]]; then
+            logit "Kodi library is updating, auto suspend terminated"
+            return 1
+        fi
+
+    fi
+}
+
+KodiScreenMessage()
+{
+    TITLE=$1
+    BODY=$2
+    # send message
+    curl -s -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"GUI.ShowNotification","params":{"title":"'"$TITLE"'","message":"'"$BODY"'"},"id":1}' $KODI_WEBPATH >/dev/null
+
+}
+
+IsStreamActive()
+{
+    if [ "${MEDIACENTER_ENABLED:-no}" = 'yes' ] ; then
+
+        LC_ALL=C
+        active_stream=$(netstat -n| grep -oP "[0-9.]{7,15}:${STREAM_PORT}\s+\K([^\s]+)(?=:\d+\s+ESTABLISHED)")
+        if [ "x" != "x$active_stream" ]; then
+          logit "Server has an active streaming client: $active_stream"
+          return 1
+        fi
+
+    fi
+}
+
+IsMpdBusy() {
+
+    if [ "${MEDIACENTER_ENABLED:-no}" = 'yes' ] ; then
+
+        mpc_status=$(mpc --host $MPD_HOST)
+        if [[ $mpc_status = *"playing"* ]] || [[ $mpc_status = *"Updating DB"* ]] ; then
+            logit "Music Player Daemon is busy."
+            return 1
+        fi
+
+    fi
+
+}
+
+if [ "${MEDIACENTER_ENABLED:-no}" == 'yes' ] ; then
+
+    #
+    # Check credentials and apply default values
+    #
+    KODI_IP=${KODI_IP:-$(hostname)}
+    KODI_HTTP_PORT=${KODI_HTTP_PORT:-80}
+    if [ -z "$KODI_USER" ] || [ -z "$KODI_PASSWORD" ] ; then
+        KODI_WEBPATH="http://$KODI_IP:$KODI_HTTP_PORT/jsonrpc"
+    else
+        KODI_WEBPATH="http://$KODI_USER:$KODI_PASSWORD@$KODI_IP:$KODI_HTTP_PORT/jsonrpc"
+    fi
+    # Music Player Daemon default values
+    if [ -z "$MPD_PASSWORD" ] ; then
+        MPD_HOST=${MPD_HOST:-$(hostname)}
+    else
+        MPD_HOST=$MPD_PASSWORD@${MPD_HOST:-$(hostname)}
+    fi
+    STREAM_PORT=${STREAM_PORT:-8000}
+
+    # check activity of Kodi, streaming and mpd
+    # $list_of_functions defined above
+    for function in $list_of_functions; do
+        $function
+        if [ "$?" = "1" ]; then return 1; fi
+    done
+
+else
+    logit "Mediacenter support with is disabled by configuration"
+fi

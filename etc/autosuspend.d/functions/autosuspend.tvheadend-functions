@@ -6,6 +6,10 @@
 # Should be sourced from /usr/local/sbin/autosuspend.sh
 #
 
+# list of functions within this script file to check machine activity
+# prevent autosuspend on return 1
+# no objections if no return value is given
+list_of_functions="IsTvheadendBusy"
 
 #
 # add logit function if not sourced from the original autosuspend.sh script
@@ -17,26 +21,6 @@ if [ -z "$(type -t logit)" ] ; then
       return 0
     }
 fi
-
-
-if [ "${TVHEADEND_ENABLED:-yes}" == 'yes' ] ; then
-
-    #
-    # Check credentials and apply default values
-    #
-    if [ -z "$TVHEADEND_USER" ] || [ -z "$TVHEADEND_PASSWORD" ] ; then
-        logit "Missing Tvheadend credentials (user and/or password)"
-        return 1
-    fi
-    TVHEADEND_IP=$(echo ${TVHEADEND_IP:-$(hostname -I)} | tr -d [:space:])
-    TVHEADEND_HTTP_PORT=${TVHEADEND_HTTP_PORT:-9981}
-    TVHEADEND_HTSP_PORT=${TVHEADEND_HTSP_PORT:-9982}
-    TVHEADEND_WEBPATH="http://$TVHEADEND_IP:$TVHEADEND_HTTP_PORT/${TVHEADEND_WEBROOT}"
-else
-    logit "Tvheadend support is disabled by configuration"
-fi
-TVHEADEND_ACTIVITIES_PATH=/etc/autosuspend.d/activities
-TVHEADEND_PRE_SUSPEND_HOOKS_PATH=/etc/autosuspend.d/pre-suspend-hooks
 
 IsTvheadendBusy()
 {
@@ -163,16 +147,18 @@ FindNextActivity() {
     fi
 }
 
+# TODO: Could this things go to the main script file?
 SetWakeupTime() {
     next=$(FindNextActivity '--call-pre-suspend-hooks')
     if [ -n "$next" ]; then
         wake_date=$(($next - ${TVHEADEND_BOOT_DELAY_SECONDS:-180}))
         # use wittyPi boot capabilities if available
-        if [ ${WITTYPI_ENABLED:-no} = 'yes' -a -f "$WITTYPI_BASEDIR/utilities.sh" ] ; then
+        if [ ${WITTYPI_ENABLED:-no} = 'yes' -a -r "$WITTYPI_BASEDIR/utilities.sh" ] ; then
             . $WITTYPI_BASEDIR/utilities.sh
             wittyPi_dhms=`date -d "@$wake_date" "+%d %H %M %S"`
             # use wittyPi to set startup time
             set_startup_time $wittyPi_dhms
+            logit "Used wittyPi to schedule next reboot on "`date -d "@$wake_date"`
         else
             echo 0 > /sys/class/rtc/rtc0/wakealarm
             logit $(/usr/sbin/rtcwake -m no -t $wake_date)
@@ -196,3 +182,32 @@ CallPreSuspendHooks() {
         fi
     done
 }
+
+
+# TODO: do we need these if Tvheadend is disabled?
+TVHEADEND_ACTIVITIES_PATH=/etc/autosuspend.d/activities
+TVHEADEND_PRE_SUSPEND_HOOKS_PATH=/etc/autosuspend.d/pre-suspend-hooks
+
+if [ "${TVHEADEND_ENABLED:-yes}" == 'yes' ] ; then
+
+    #
+    # Check credentials and apply default values
+    #
+    if [ -z "$TVHEADEND_USER" ] || [ -z "$TVHEADEND_PASSWORD" ] ; then
+        logit "Missing Tvheadend credentials (user and/or password)"
+        return 1
+    fi
+    TVHEADEND_IP=${TVHEADEND_IP:-$(hostname)}
+    TVHEADEND_HTTP_PORT=${TVHEADEND_HTTP_PORT:-9981}
+    TVHEADEND_HTSP_PORT=${TVHEADEND_HTSP_PORT:-9982}
+    TVHEADEND_WEBPATH="http://$TVHEADEND_IP:$TVHEADEND_HTTP_PORT/${TVHEADEND_WEBROOT}"
+
+    # Tvheadend activity
+    # $list_of_functions defined above
+    for function in $list_of_functions; do
+        $function
+        if [ "$?" = "1" ]; then return 1; fi
+    done
+else
+    logit "Tvheadend support is disabled by configuration"
+fi
