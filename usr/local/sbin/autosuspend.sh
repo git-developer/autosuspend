@@ -73,7 +73,7 @@ IsBusy()
 	# Read logged users
 	USERCOUNT=`who | wc -l`;
 	# No Suspend if there are any users logged in
-	#test $USERCOUNT -gt 0 && { logit "some users still connected, auto suspend terminated"; return 1; }
+	test $USERCOUNT -gt 0 && { logit "some users still connected, auto suspend terminated"; return 1; }
 
 	IsOnline $CLIENTS
 	if [ "$?" == "1" ]; then
@@ -153,7 +153,7 @@ if [ "$AUTO_SUSPEND" = "true" ] || [ "$AUTO_SUSPEND" = "yes" ] ; then
                                             ;;
                                             "hybrid-sleep") systemctl hybrid-sleep
                                             ;;
-                                            "poweroff")     echo systemctl poweroff
+                                            "poweroff")     systemctl poweroff
                                             ;;
                                             *) logit "Aborting because of unsupported suspend method: $suspend_method"
                                             ;;
