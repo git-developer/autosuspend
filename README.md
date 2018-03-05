@@ -23,6 +23,7 @@ An extension to [Tvheadend](https://tvheadend.org/) that will _suspend_ your sys
 * Additional system activity is monitored
   *  Kodi activity (library update, active players)
   *  Connections to streaming services on the machine can be detected
+  *  Support for the Music Player Daemon
 
 This script is based on `systemd` and does not make use of `pm-utils`. It has been tested on Debian 8 (Jessie) with Tvheadend build 4.0.8~jessie. It should work on systems that meet the dependencies listed below.
 
@@ -47,7 +48,7 @@ On Debian based systems, dependencies may be installed using the command
 On raspberry pi platforms, the wittyPi module can be used to schedule the in-time-boot processes
 
 ## Configuration
-Edit `/etc/autosuspend` according to your needs. Credentials for tvheadend are **required**, e.g.
+Edit `/etc/autosuspend.conf` according to your needs. Credentials for tvheadend are **required**, e.g.
 
     # User for access to the Tvheadend REST API
     TVHEADEND_USER=hts
