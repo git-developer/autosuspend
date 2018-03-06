@@ -27,12 +27,13 @@ IsKodiBusy()
 {
     if [ "${MEDIACENTER_ENABLED:-no}" = 'yes' ] ; then
 
-        kodi_player_status=$(curl -s -H 'Content-Type: application/json' -d '{"jsonrpc": "2.0", "method": "Player.GetActivePlayers", "id": 1}' $KODI_WEBPATH)
+        kodi_player_status=$(curl --max-time 15 -s -H 'Content-Type: application/json' -d '{"jsonrpc": "2.0", "method": "Player.GetActivePlayers", "id": 1}' $KODI_WEBPATH)
+        [ "$?" = 28 ] && logit "curl: (28) Operation timed out after 15000 milliseconds to kodi at $KODI_WEBPATH"
         if [[ $kodi_player_status = *"playerid"* ]]; then
             logit "Kodi is actively playing, auto suspend terminated"
             return 1
         fi
-        kodi_library_update_status=$(curl -s -H "Content-Type: application/json" -X POST -d '{"jsonrpc":"2.0","method":"XBMC.GetInfoBooleans","params": { "booleans": ["library.isscanning"]} ,"id":1}' $KODI_WEBPATH)
+        kodi_library_update_status=$(curl --max-time 15 -s -H "Content-Type: application/json" -X POST -d '{"jsonrpc":"2.0","method":"XBMC.GetInfoBooleans","params": { "booleans": ["library.isscanning"]} ,"id":1}' $KODI_WEBPATH)
         if [[ $kodi_library_update_status = *"true"* ]]; then
             logit "Kodi library is updating, auto suspend terminated"
             return 1
@@ -46,7 +47,7 @@ KodiScreenMessage()
     TITLE=$1
     BODY=$2
     # send message
-    curl -s -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"GUI.ShowNotification","params":{"title":"'"$TITLE"'","message":"'"$BODY"'"},"id":1}' $KODI_WEBPATH >/dev/null
+    curl --max-time 15 -s -X POST -H "Content-Type: application/json" -d '{"jsonrpc":"2.0","method":"GUI.ShowNotification","params":{"title":"'"$TITLE"'","message":"'"$BODY"'"},"id":1}' $KODI_WEBPATH >/dev/null
 
 }
 
@@ -69,6 +70,8 @@ IsMpdBusy() {
     if [ "${MEDIACENTER_ENABLED:-no}" = 'yes' ] ; then
 
         mpc_status=$(mpc --host $MPD_HOST)
+        [ "$?" = 1 ] && logit "Music Player Daemon refusesd the connection at $MPD_HOST"
+
         if [[ $mpc_status = *"playing"* ]] || [[ $mpc_status = *"Updating DB"* ]] ; then
             logit "Music Player Daemon is busy."
             return 1

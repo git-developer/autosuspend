@@ -1,0 +1,11 @@
+[Unit]
+Description=Run autosuspend.sh every 15 minutes
+
+[Timer]
+Unit=autosuspend.service
+#OnCalendar=hourly
+OnCalendar=*:0/15
+Persistent=True
+
+[Install]
+WantedBy=timers.target

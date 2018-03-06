@@ -26,7 +26,8 @@ IsTvheadendBusy()
 {
     if [ "${TVHEADEND_ENABLED:-yes}" == 'yes' ] ; then
 
-        tvheadend_status=$(curl -s --user $TVHEADEND_USER:$TVHEADEND_PASSWORD $TVHEADEND_WEBPATH/status.xml)
+        tvheadend_status=$(curl --max-time 15 -s --user $TVHEADEND_USER:$TVHEADEND_PASSWORD $TVHEADEND_WEBPATH/status.xml)
+        [ "$?" = 28 ] && logit "curl: (28) Operation timed out after 15000 milliseconds to tvheadend at $TVHEADEND_WEBPATH/status.xml"
 
         # Does also work for more than 1 'recording' element
         recording_status=$(echo $tvheadend_status | xmlstarlet sel -t -v "currentload/recordings/recording/status='Recording'")
@@ -41,7 +42,7 @@ IsTvheadendBusy()
                 logit "Tvheadend has $subscription_count subscriptions, auto suspend terminated"
                 return 1
             else
-                subscriptions=$(curl -s --user $TVHEADEND_USER:$TVHEADEND_PASSWORD $TVHEADEND_WEBPATH/api/status/subscriptions)
+                subscriptions=$(curl --max-time 15 -s --user $TVHEADEND_USER:$TVHEADEND_PASSWORD $TVHEADEND_WEBPATH/api/status/subscriptions)
                 IFS=$'\n' subscription_titles+=($(echo $subscriptions | jq -r ".entries[] | .title" ))
                 for subscription_title in "${subscription_titles[@]}"; do
                     if [ "$subscription_title" != "epggrab" ] ; then
@@ -93,7 +94,7 @@ FindNextActivity() {
 
     if [ "${TVHEADEND_ENABLED:-yes}" == 'yes' ] ; then
         # collect Tvheadend schedules
-        tvheadend_dvr_upcoming=$(curl -s --user "$TVHEADEND_USER:$TVHEADEND_PASSWORD" "$TVHEADEND_WEBPATH/api/dvr/entry/grid_upcoming?sort=start_real&dir=ASC&limit=5")
+        tvheadend_dvr_upcoming=$(curl --max-time 15 -s --user "$TVHEADEND_USER:$TVHEADEND_PASSWORD" "$TVHEADEND_WEBPATH/api/dvr/entry/grid_upcoming?sort=start_real&dir=ASC&limit=5")
         IFS=$'\n' activities+=($(echo $tvheadend_dvr_upcoming | jq -r ".entries[] | \"Tvheadend schedule:\" + (.start_real | tostring) + \":\" + .channelname + \" - \" + .disp_title + if (.disp_subtitle | length > 0) then \" (\" + .disp_subtitle + \")\" else \"\" end"))
         unset IFS
         logit "Fetched next ${#activities[@]} upcoming recordings from Tvheadend"
