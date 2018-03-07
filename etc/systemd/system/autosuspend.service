@@ -1,0 +1,6 @@
+[Unit]
+Description=Run autosuspend.sh
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/sbin/autosuspend.sh
