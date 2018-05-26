@@ -31,6 +31,7 @@ if [ "${TVHEADEND_ENABLED:-yes}" == 'yes' ] ; then
     TVHEADEND_IP=$(echo ${TVHEADEND_IP:-$(hostname -I)} | cut -d' ' -f1 )
     TVHEADEND_HTTP_PORT=${TVHEADEND_HTTP_PORT:-9981}
     TVHEADEND_HTSP_PORT=${TVHEADEND_HTSP_PORT:-9982}
+    TVHEADEND_HTTP_URL=${TVHEADEND_HTTP_URL:-http://$TVHEADEND_IP:$TVHEADEND_HTTP_PORT}
 else
     logit "Tvheadend support is disabled by configuration"
 fi
@@ -41,7 +42,7 @@ IsTvheadendBusy()
 {
     if [ "${TVHEADEND_ENABLED:-yes}" == 'yes' ] ; then
 
-        tvheadend_status=$(curl -s --user $TVHEADEND_USER:$TVHEADEND_PASSWORD http://$TVHEADEND_IP:$TVHEADEND_HTTP_PORT/status.xml)
+        tvheadend_status=$(curl -s --user "$TVHEADEND_USER:$TVHEADEND_PASSWORD" "$TVHEADEND_HTTP_URL/status.xml")
 
         # Does also work for more than 1 'recording' element
         recording_status=$(echo $tvheadend_status | xmlstarlet sel -t -v "currentload/recordings/recording/status='Recording'")
@@ -56,7 +57,7 @@ IsTvheadendBusy()
                 logit "Tvheadend has $subscription_count subscriptions, auto suspend terminated"
                 return 1
             else
-                subscriptions=$(curl -s --user $TVHEADEND_USER:$TVHEADEND_PASSWORD http://$TVHEADEND_IP:$TVHEADEND_HTTP_PORT/api/status/subscriptions)
+                subscriptions=$(curl -s --user "$TVHEADEND_USER:$TVHEADEND_PASSWORD" "$TVHEADEND_HTTP_URL/api/status/subscriptions")
                 IFS=$'\n' subscription_titles+=($(echo $subscriptions | jq -r ".entries[] | .title" ))
                 for subscription_title in "${subscription_titles[@]}"; do
                     if [ "$subscription_title" != "epggrab" ] ; then
@@ -107,7 +108,7 @@ FindNextActivity() {
 
     if [ "${TVHEADEND_ENABLED:-yes}" == 'yes' ] ; then
         # collect Tvheadend schedules
-        tvheadend_dvr_upcoming=$(curl -s --user "$TVHEADEND_USER:$TVHEADEND_PASSWORD" "http://$TVHEADEND_IP:$TVHEADEND_HTTP_PORT/api/dvr/entry/grid_upcoming?sort=start_real&dir=ASC&limit=5")
+        tvheadend_dvr_upcoming=$(curl -s --user "$TVHEADEND_USER:$TVHEADEND_PASSWORD" "$TVHEADEND_HTTP_URL/api/dvr/entry/grid_upcoming?sort=start_real&dir=ASC&limit=5")
         IFS=$'\n' activities+=($(echo $tvheadend_dvr_upcoming | jq -r ".entries[] | \"Tvheadend schedule:\" + (.start_real | tostring) + \":\" + .channelname + \" - \" + .disp_title + if (.disp_subtitle | length > 0) then \" (\" + .disp_subtitle + \")\" else \"\" end"))
         logit "Fetched next ${#activities[@]} upcoming recordings from Tvheadend"
     fi
