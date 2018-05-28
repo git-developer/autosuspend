@@ -1,0 +1,9 @@
+[Unit]
+Description=Timer to run the autosuspend script periodically
+
+[Timer]
+Unit=autosuspend.service
+OnCalendar=*:0/5
+
+[Install]
+WantedBy=timers.target
