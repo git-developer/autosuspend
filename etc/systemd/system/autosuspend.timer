@@ -6,4 +6,4 @@ Unit=autosuspend.service
 OnCalendar=*:0/5
 
 [Install]
-WantedBy=timers.target
+WantedBy=default.target
