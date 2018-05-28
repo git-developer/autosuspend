@@ -55,7 +55,7 @@ CLIENTS=''
 #
 # Tvheadend HTTP URL for access to the Tvheadend REST API.
 # The URL must not end with a trailing slash ('/').
-# Default: http://$TVHEADEND_IP:$TVHEADEND_HTTP_PORT
+# Default: Autodetected from IP and HTTP port, e.g. http://localhost:9981
 #TVHEADEND_HTTP_URL=
 
 #
