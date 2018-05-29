@@ -59,6 +59,10 @@ CLIENTS=''
 #TVHEADEND_HTTP_URL=
 
 #
+# Tvheadend HTTP timeout in seconds. Default: 5
+#TVHEADEND_HTTP_TIMEOUT=5
+
+#
 # Boot duration of the machine. Used to wake the machine timely before the next
 # recording. Default: 180 seconds
 #TVHEADEND_BOOT_DELAY_SECONDS=180
