@@ -45,12 +45,22 @@ CLIENTS=''
 #TVHEADEND_IP=
 
 #
-# TVheadend HTTP port. Default: 9981
+# Tvheadend HTTP port. Default: 9981
 #TVHEADEND_HTTP_PORT=9981
 
 #
-# TVheadend HTSP port. Default: 9982
+# Tvheadend HTSP port. Default: 9982
 #TVHEADEND_HTSP_PORT=9982
+
+#
+# Tvheadend HTTP URL for access to the Tvheadend REST API.
+# The URL must not end with a trailing slash ('/').
+# Default: Autodetected from IP and HTTP port, e.g. http://localhost:9981
+#TVHEADEND_HTTP_URL=
+
+#
+# Tvheadend HTTP timeout in seconds. Default: 5
+#TVHEADEND_HTTP_TIMEOUT=5
 
 #
 # Boot duration of the machine. Used to wake the machine timely before the next

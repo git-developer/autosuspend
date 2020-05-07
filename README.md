@@ -35,11 +35,10 @@ This script is based on `systemd` and does not make use of `pm-utils`. It has be
  * `curl`
  * [`xmlstarlet`](http://xmlstar.sourceforge.net/)
  * [`jq`](https://stedolan.github.io/jq/)
- * `bc`
 
 On Debian based systems, dependencies may be installed using the command
 
-    $ sudo apt-get install util-linux net-tools curl xmlstarlet jq bc
+    $ sudo apt-get install util-linux net-tools curl xmlstarlet jq
 
 ## Configuration
 Edit `/etc/autosuspend` according to your needs. Credentials for tvheadend are **required**, e.g.
