@@ -115,7 +115,7 @@ if [ "$AUTO_SUSPEND" = "true" ] || [ "$AUTO_SUSPEND" = "yes" ] ; then
 					if [ "$NEXTWAKE" -gt "`expr \"\`date +%s\`\" + 1800`" ]; then
 						echo "0" > /sys/class/rtc/rtc0/wakealarm
 						echo "$NEXTWAKE" > /sys/class/rtc/rtc0/wakealarm
-						logit "will resume at $NEXTWAKE"
+						logit "will resume at `date --date=@"$NEXTWAKE"`"
 					else
 						logit "do not suspend because would have been awaken within next 30 minutes"
 						exit 0
