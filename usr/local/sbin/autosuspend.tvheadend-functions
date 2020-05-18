@@ -43,9 +43,8 @@ IsTvheadendBusy()
 {
     if [ "${TVHEADEND_ENABLED:-yes}" == 'yes' ] ; then
 
-        tvheadend_status=$(curl --max-time "$TVHEADEND_HTTP_TIMEOUT" -s --user "$TVHEADEND_USER:$TVHEADEND_PASSWORD" "$TVHEADEND_HTTP_URL/status.xml")
-        if [ "$?" = 28 ]; then
-          logit "Error: timeout after $TVHEADEND_HTTP_TIMEOUT seconds while trying to access $TVHEADEND_HTTP_URL/status.xml"
+        tvheadend_status=$(queryTvheadend "$TVHEADEND_HTTP_URL/status.xml")
+        if [ "$?" != 0 ]; then
           return 1
         fi
 
@@ -62,9 +61,8 @@ IsTvheadendBusy()
                 logit "Tvheadend has $subscription_count subscriptions, auto suspend terminated"
                 return 1
             else
-                subscriptions=$(curl --max-time "$TVHEADEND_HTTP_TIMEOUT" -s --user "$TVHEADEND_USER:$TVHEADEND_PASSWORD" "$TVHEADEND_HTTP_URL/api/status/subscriptions")
-                if [ "$?" = 28 ]; then
-                  logit "Error: timeout after $TVHEADEND_HTTP_TIMEOUT seconds while trying to access $TVHEADEND_HTTP_URL/api/status/subscriptions"
+                subscriptions=$(queryTvheadend "$TVHEADEND_HTTP_URL/api/status/subscriptions")
+                if [ "$?" != 0 ]; then
                   return 1
                 fi
 
@@ -118,9 +116,8 @@ FindNextActivity() {
 
     if [ "${TVHEADEND_ENABLED:-yes}" == 'yes' ] ; then
         # collect Tvheadend schedules
-        tvheadend_dvr_upcoming=$(curl --max-time "$TVHEADEND_HTTP_TIMEOUT" -s --user "$TVHEADEND_USER:$TVHEADEND_PASSWORD" "$TVHEADEND_HTTP_URL/api/dvr/entry/grid_upcoming?sort=start_real&dir=ASC&limit=5")
-        if [ "$?" = 28 ]; then
-          logit "Error: timeout after $TVHEADEND_HTTP_TIMEOUT seconds while trying to access $TVHEADEND_HTTP_URL/api/dvr/entry/grid_upcoming?sort=start_real&dir=ASC&limit=5"
+        tvheadend_dvr_upcoming=$(queryTvheadend "$TVHEADEND_HTTP_URL/api/dvr/entry/grid_upcoming?sort=start_real&dir=ASC&limit=5")
+        if [ "$?" != 1 ]; then
           return 1
         fi
 
@@ -197,4 +194,28 @@ CallPreSuspendHooks() {
             done
         fi
     done
+}
+
+queryTvheadend()
+{
+        response=$(curl --max-time "$TVHEADEND_HTTP_TIMEOUT" -s --user "$TVHEADEND_USER:$TVHEADEND_PASSWORD" "$1")
+
+        # return result if successful
+        if [ "$?" = 0 ]; then
+                echo "$response"
+                return
+        fi
+
+        # output failure reason
+        case "$?" in
+                "28")
+                        logit "Error: timeout after $TVHEADEND_HTTP_TIMEOUT seconds while trying to access $1"
+                        return 1;;
+                "7")
+                        logit "Error: failed to connect to $1"
+                        return 1;;
+                *)
+                        logit "Error: connecting to $1 returned exit code $?"
+                        return 1;;
+        esac
 }
