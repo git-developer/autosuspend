@@ -70,6 +70,10 @@ CLIENTS=''
 #
 # Autosuspension will be aborted if a recording is upcoming within the given
 # duration (unit: minutes). Default: 15 minutes
+#
+# The duration of this value (given in minutes) should be greater than the
+# duration of TVHEADEND_BOOT_DELAY_SECONDS (given in seconds), because otherwise
+# the machine is allowed to shutdown even if it cannot wake up in time.
 #TVHEADEND_IDLE_MINUTES_BEFORE_RECORDING=15
 
 #
