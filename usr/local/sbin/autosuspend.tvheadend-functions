@@ -87,7 +87,7 @@ IsTvheadendBusy()
         LANG=C
         active_clients=()
         for port in $TVHEADEND_PORTS; do
-            IFS=$'\n' active_clients+=($(netstat -n | grep -oP "$TVHEADEND_IP:$port\s+\K([^\s]+)(?=:\d+\s+ESTABLISHED)"))
+            IFS=$'\n' active_clients+=($(netstat --wide --numeric-ports | grep -oP ":$port\s+\K([^\s]+)(?=:\w+\s+ESTABLISHED)"))
         done
         if [ $active_clients ]; then
           logit "Tvheadend has active clients: ${active_clients[@]}"
@@ -199,23 +199,19 @@ CallPreSuspendHooks() {
 queryTvheadend()
 {
         response=$(curl --max-time "$TVHEADEND_HTTP_TIMEOUT" -s --user "$TVHEADEND_USER:$TVHEADEND_PASSWORD" "$1")
+        curlExitCode="$?"
 
-        # return result if successful
-        if [ "$?" = 0 ]; then
-                echo "$response"
-                return
-        fi
-
-        # output failure reason
-        case "$?" in
+        # return result or log failure
+        case "$curlExitCode" in
+                "0")
+                        echo "$response"
+                        return;;
                 "28")
-                        logit "Error: timeout after $TVHEADEND_HTTP_TIMEOUT seconds while trying to access $1"
-                        return 1;;
+                        logit "Error: timeout after $TVHEADEND_HTTP_TIMEOUT seconds while trying to access $1 (curl exit code: $curlExitCode)";;
                 "7")
-                        logit "Error: failed to connect to $1"
-                        return 1;;
+                        logit "Error: failed to connect to $1 (curl exit code: $curlExitCode)";;
                 *)
-                        logit "Error: connecting to $1 returned exit code $?"
-                        return 1;;
+                        logit "Error: connecting to $1 failed (curl exit code: $curlExitCode)";;
         esac
+        return 1
 }
