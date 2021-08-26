@@ -136,7 +136,7 @@ if [ "$AUTO_SUSPEND" = "true" ] || [ "$AUTO_SUSPEND" = "yes" ] ; then
                                             logit "Aborting suspend because of missing wakeup time"
                                             exit 3
                                         fi
-                                        if [[ "$wakeup_time" -le $(date +%s) ]]; then
+                                        if [[ -n "$wakeup_time" ]] && [[ "$wakeup_time" -le $(date +%s) ]]; then
                                             logit "Aborting suspend because wakeup time" $(date --date @$wakeup_time) "is in the past"
                                             exit 2
                                         fi
