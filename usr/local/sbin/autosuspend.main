@@ -132,6 +132,10 @@ if [ "$AUTO_SUSPEND" = "true" ] || [ "$AUTO_SUSPEND" = "yes" ] ; then
                                         logit "Suspend method: $suspend_method"
                                         SetWakeupTime
                                         wakeup_time=$(cat /sys/class/rtc/rtc0/wakealarm)
+                                        if [[ -z "$wakeup_time" ]] && [[ "${SUSPEND_WITHOUT_WAKEUP:-no}" != "yes" ]]; then
+                                            logit "Aborting suspend because of missing wakeup time"
+                                            exit 3
+                                        fi
                                         if [[ "$wakeup_time" -le $(date +%s) ]]; then
                                             logit "Aborting suspend because wakeup time" $(date --date @$wakeup_time) "is in the past"
                                             exit 2
