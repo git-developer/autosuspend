@@ -10,6 +10,9 @@ DONT_SUSPEND_BY_DAY='no'
 # Automatically reboot once a week when the system isn't in use
 REBOOT_ONCE_PER_WEEK='yes'
 
+# Allow suspend when no wakeup time exists
+SUSPEND_WITHOUT_WAKEUP='no'
+
 # Daemons that always have one process running, only if more that one process is active we prevent the suspend
 # The values are used with grep, so just a unique portion is sufficient
 DAEMONS=''
