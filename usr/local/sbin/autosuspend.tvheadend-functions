@@ -198,7 +198,7 @@ CallPreSuspendHooks() {
 
 queryTvheadend()
 {
-        response=$(curl --max-time "$TVHEADEND_HTTP_TIMEOUT" -s --user "$TVHEADEND_USER:$TVHEADEND_PASSWORD" "$1")
+        response=$(curl ${TVHEADEND_CURL_OPTIONS-} --max-time "$TVHEADEND_HTTP_TIMEOUT" -s --user "$TVHEADEND_USER:$TVHEADEND_PASSWORD" "$1")
 
         # return result if successful
         if [ "$?" = 0 ]; then
